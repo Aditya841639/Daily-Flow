@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DailyFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBFBF8; --surface:#FFFFFF; --surface-2:#F2F1EA;
+    --ink:#20231F; --ink-soft:#5B6058; --line:#E4E2D8;
+    --teal:#3F8F85; --teal-soft:#DCEEEA;
+    --coral:#E2764F; --coral-soft:#FBE4D8;
+    --gold:#C9962E; --gold-soft:#F6ECD4;
+    --red:#C85C5C; --red-soft:#F7E0E0;
+    --green:#5E9E6B; --green-soft:#E2EFE1;
+    --shadow: 0 1px 2px rgba(32,35,31,.04), 0 6px 20px rgba(32,35,31,.06);
+    color-scheme: light;
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top,0px);
+    padding-bottom: env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#161915; --surface:#1E2219; --surface-2:#262B20;
+      --ink:#EDEEE7; --ink-soft:#A6AA9E; --line:#323729;
+      --teal-soft:#213330; --coral-soft:#332821; --gold-soft:#332C1C; --red-soft:#332223; --green-soft:#1F2C20;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#161915; --surface:#1E2219; --surface-2:#262B20;
+    --ink:#EDEEE7; --ink-soft:#A6AA9E; --line:#323729;
+    --teal-soft:#213330; --coral-soft:#332821; --gold-soft:#332C1C; --red-soft:#332223; --green-soft:#1F2C20;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    transition:background .25s ease, color .25s ease;
+  }
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg);}
+  .wrap{max-width:760px; margin:0 auto; padding:28px 20px 80px;}
+  header{display:flex; align-items:center; justify-content:space-between; margin-bottom:22px;}
+  .brand{display:flex; align-items:baseline; gap:10px;}
+  .brand h1{font-family:'Fraunces',serif; font-weight:600; font-size:28px; margin:0; letter-spacing:-.01em;}
+  .brand span{color:var(--ink-soft); font-size:14px;}
+  .theme-btn{
+    border:1px solid var(--line); background:var(--surface); color:var(--ink);
+    width:40px; height:40px; border-radius:12px; cursor:pointer; font-size:17px;
+    display:flex; align-items:center; justify-content:center; transition:transform .15s ease, background .2s;
+  }
+  .theme-btn:hover{background:var(--surface-2);}
+  .theme-btn:active{transform:scale(.92);}
+
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow); padding:18px 20px; margin-bottom:16px;}
+
+  /* progress ring summary */
+  .summary{display:flex; align-items:center; gap:18px;}
+  .ring{flex:none; width:64px; height:64px;}
+  .summary-text b{font-size:17px;}
+  .summary-text p{margin:2px 0 0; color:var(--ink-soft); font-size:13.5px;}
+
+  /* add form */
+  .add-form{display:flex; flex-wrap:wrap; gap:8px;}
+  .add-form input[type="text"]{
+    flex:1 1 180px; min-width:140px; padding:11px 13px; border-radius:12px; border:1px solid var(--line);
+    background:var(--surface-2); color:var(--ink); font-size:14.5px; font-family:inherit;
+  }
+  select{padding:11px 10px; border-radius:12px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); font-size:14px; font-family:inherit;}
+  input:focus, select:focus, button:focus-visible{outline:2px solid var(--teal); outline-offset:1px;}
+  .add-btn{
+    border:none; background:var(--teal); color:#fff; padding:11px 18px; border-radius:12px;
+    font-weight:600; font-size:14.5px; cursor:pointer; transition:filter .15s, transform .1s;
+  }
+  .add-btn:hover{filter:brightness(1.08);}
+  .add-btn:active{transform:scale(.97);}
+
+  /* category groups */
+  .cat-heading{font-size:12.5px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); margin:22px 2px 10px;}
+  .task{
+    display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--line);
+    border-radius:16px; padding:13px 14px; margin-bottom:10px; box-shadow:var(--shadow);
+    transition:transform .15s ease, opacity .2s ease, background .2s;
+  }
+  .task.done{background:var(--surface-2);}
+  .check{
+    flex:none; width:26px; height:26px; border-radius:50%; border:2px solid var(--line); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:background .18s,border-color .18s,transform .15s;
+    background:var(--surface);
+  }
+  .check svg{width:14px;height:14px;opacity:0;transform:scale(.5);transition:opacity .15s,transform .15s;}
+  .task.done .check{background:var(--green); border-color:var(--green);}
+  .task.done .check svg{opacity:1; transform:scale(1);}
+  .task-main{flex:1; min-width:0;}
+  .task-name{font-size:15px; font-weight:500;}
+  .task.done .task-name{color:var(--ink-soft); text-decoration:line-through; text-decoration-color:var(--ink-soft);}
+  .meta-row{display:flex; gap:7px; align-items:center; margin-top:4px; flex-wrap:wrap;}
+  .pill{font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px;}
+  .pri-High{background:var(--red-soft); color:var(--red);}
+  .pri-Medium{background:var(--gold-soft); color:var(--gold);}
+  .pri-Low{background:var(--green-soft); color:var(--green);}
+  .streak{display:flex; align-items:center; gap:3px; font-size:12px; color:var(--coral); font-weight:600;}
+  .task-actions{display:flex; gap:4px; flex:none;}
+  .icon-btn{border:none; background:transparent; color:var(--ink-soft); cursor:pointer; padding:6px; border-radius:8px; font-size:14px; line-height:1;}
+  .icon-btn:hover{background:var(--surface-2); color:var(--ink);}
+  .empty{color:var(--ink-soft); font-size:14px; text-align:center; padding:30px 10px;}
+
+  /* chart */
+  .chart-bars{display:flex; align-items:flex-end; gap:8px; height:110px; padding-top:8px;}
+  .bar-col{flex:1; display:flex; flex-direction:column; align-items:center; gap:6px;}
+  .bar-track{width:100%; height:80px; display:flex; align-items:flex-end; background:var(--surface-2); border-radius:8px; overflow:hidden;}
+  .bar-fill{width:100%; background:linear-gradient(180deg, var(--teal), var(--teal)); border-radius:8px; transition:height .5s cubic-bezier(.22,1,.36,1);}
+  .bar-label{font-size:11px; color:var(--ink-soft);}
+  .bar-pct{font-size:10.5px; color:var(--ink-soft);}
+
+  /* celebration */
+  .celebrate{
+    position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:50;
+    background:rgba(20,22,18,.35); backdrop-filter: blur(2px); padding:20px;
+  }
+  .celebrate.show{display:flex;}
+  .celebrate-card{
+    background:var(--surface); border-radius:20px; padding:30px 34px; text-align:center; box-shadow:var(--shadow);
+    animation: pop .4s cubic-bezier(.22,1.5,.4,1);
+    max-width:320px;
+  }
+  @keyframes pop{from{transform:scale(.8); opacity:0;} to{transform:scale(1); opacity:1;}}
+  .celebrate-emoji{font-size:40px; margin-bottom:8px;}
+  .celebrate-card h3{font-family:'Fraunces',serif; margin:0 0 6px; font-size:21px;}
+  .celebrate-card p{color:var(--ink-soft); margin:0 0 16px; font-size:14px;}
+  .celebrate-card button{border:none; background:var(--teal); color:#fff; padding:9px 20px; border-radius:10px; font-weight:600; cursor:pointer;}
+
+  @media (max-width:480px){
+    .brand h1{font-size:23px;}
+    .card{padding:15px 16px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+
+  /* login */
+  .login-screen{min-height:100%; display:flex; align-items:center; justify-content:center; padding:40px 20px; box-sizing:border-box;}
+  .login-card{width:100%; max-width:380px; background:var(--surface); border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow); padding:36px 32px; box-sizing:border-box;}
+  .login-head{display:flex; flex-direction:column; gap:6px; margin-bottom:24px;}
+  .login-head h1{font-family:'Fraunces',serif; font-weight:600; font-size:24px; margin:0; letter-spacing:-.01em;}
+  .login-head p{margin:0; font-size:13.5px; color:var(--ink-soft);}
+  .login-field{display:flex; flex-direction:column; gap:6px; margin-bottom:14px;}
+  .login-field label{font-size:12.5px; font-weight:500; color:var(--ink-soft);}
+  .login-field input{padding:12px 13px; border-radius:12px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); font-size:14.5px; font-family:inherit;}
+  .login-card button[type=submit]{width:100%; margin-top:6px; border:none; background:var(--teal); color:#fff; font-weight:600; font-size:14.5px; padding:12px; border-radius:12px; cursor:pointer; font-family:inherit;}
+  .login-error{font-size:12.5px; color:var(--red); min-height:16px; margin:-4px 0 6px;}
+  .logout-btn{border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); font-size:12.5px; font-weight:500; padding:8px 12px; border-radius:10px; cursor:pointer; font-family:inherit;}
+  .logout-btn:hover{background:var(--surface-2); color:var(--ink);}
+  .header-actions{display:flex; align-items:center; gap:8px;}
+</style>
+</head>
+<body>
+
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-head">
+      <h1>Welcome to DailyFlow</h1>
+      <p>Log in to see your tasks and streaks.</p>
+    </div>
+    <form id="loginForm">
+      <div class="login-field">
+        <label for="loginEmail">Email</label>
+        <input id="loginEmail" type="email" placeholder="you@example.com" required>
+      </div>
+      <div class="login-field">
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" type="password" placeholder="Enter your password" required>
+      </div>
+      <div class="login-error" id="loginError"></div>
+      <button type="submit">Log in</button>
+    </form>
+  </div>
+</div>
+
+<div class="wrap" id="appRoot" style="display:none">
+  <header>
+    <div class="brand"><h1>DailyFlow</h1><span id="todayLabel"></span></div>
+    <div class="header-actions">
+      <button class="logout-btn" id="logoutBtn">Log out</button>
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle dark mode">🌙</button>
+    </div>
+  </header>
+
+  <div class="card summary">
+    <svg class="ring" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="27" fill="none" stroke="var(--surface-2)" stroke-width="7"/>
+      <circle id="ringFg" cx="32" cy="32" r="27" fill="none" stroke="var(--teal)" stroke-width="7" stroke-linecap="round"
+        transform="rotate(-90 32 32)" stroke-dasharray="169.6" stroke-dashoffset="169.6" style="transition:stroke-dashoffset .5s ease"/>
+    </svg>
+    <div class="summary-text">
+      <b id="summaryCount">0 / 0 done today</b>
+      <p id="summarySub">Add a task below to get started.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <form class="add-form" id="addForm">
+      <input type="text" id="taskInput" placeholder="New task, e.g. Drink water" required>
+      <select id="catInput">
+        <option>Work</option><option>Personal</option><option>Health</option><option>Learning</option><option>Other</option>
+      </select>
+      <select id="priInput">
+        <option value="Medium">Medium</option><option value="High">High</option><option value="Low">Low</option>
+      </select>
+      <button class="add-btn" type="submit">Add task</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="cat-heading" style="margin-top:0">This week</div>
+    <div class="chart-bars" id="chartBars"></div>
+  </div>
+
+  <div id="taskGroups"></div>
+</div>
+
+<div class="celebrate" id="celebrate">
+  <div class="celebrate-card">
+    <div class="celebrate-emoji">🎉</div>
+    <h3>All done for today</h3>
+    <p>Every task on your list is complete. Nice work.</p>
+    <button id="celebrateClose">Keep going</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const LS_TASKS = 'dailyflow_tasks', LS_COMP = 'dailyflow_completions', LS_THEME = 'dailyflow_theme';
+  const todayStr = () => new Date().toISOString().slice(0,10);
+  const load = (k,f) => { try{ const v = localStorage.getItem(k); return v? JSON.parse(v): f; }catch(e){ return f; } };
+  const save = (k,v) => { try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+
+  let tasks = load(LS_TASKS, []);
+  let completions = load(LS_COMP, {}); // {date: [taskId,...]}
+
+  const themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){
+    if(t==='light'||t==='dark') document.documentElement.setAttribute('data-theme', t);
+    else document.documentElement.removeAttribute('data-theme');
+    themeBtn.textContent = (document.documentElement.getAttribute('data-theme')==='dark' ||
+      (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) ? '☀️' : '🌙';
+  }
+  let savedTheme = load(LS_THEME, null);
+  applyTheme(savedTheme);
+  themeBtn.addEventListener('click', ()=>{
+    const isDark = document.documentElement.getAttribute('data-theme')==='dark' ||
+      (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const next = isDark ? 'light' : 'dark';
+    save(LS_THEME, next); applyTheme(next);
+  });
+
+  document.getElementById('todayLabel').textContent = new Date().toLocaleDateString(undefined,{weekday:'long', month:'short', day:'numeric'});
+
+  function isDone(id, date){ return (completions[date]||[]).includes(id); }
+  function toggleDone(id){
+    const d = todayStr();
+    const list = completions[d] || [];
+    const idx = list.indexOf(id);
+    if(idx>-1) list.splice(idx,1); else list.push(id);
+    completions[d] = list;
+    save(LS_COMP, completions);
+    render();
+    checkCelebrate();
+  }
+
+  function streakFor(id){
+    let count=0, d=new Date();
+    // if today not done, start counting from yesterday
+    if(!isDone(id, todayStr())) d.setDate(d.getDate()-1);
+    while(true){
+      const ds = d.toISOString().slice(0,10);
+      if(isDone(id, ds)){ count++; d.setDate(d.getDate()-1); } else break;
+    }
+    return count;
+  }
+
+  function addTask(name, cat, pri){
+    tasks.push({id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), name, cat, pri});
+    save(LS_TASKS, tasks);
+    render();
+  }
+  function deleteTask(id){
+    tasks = tasks.filter(t=>t.id!==id);
+    save(LS_TASKS, tasks);
+    render();
+  }
+  function editTask(id){
+    const t = tasks.find(x=>x.id===id); if(!t) return;
+    const n = prompt('Edit task name', t.name);
+    if(n && n.trim()){ t.name = n.trim(); save(LS_TASKS, tasks); render(); }
+  }
+
+  document.getElementById('addForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    const nameEl = document.getElementById('taskInput');
+    const name = nameEl.value.trim();
+    if(!name) return;
+    addTask(name, document.getElementById('catInput').value, document.getElementById('priInput').value);
+    nameEl.value='';
+    nameEl.focus();
+  });
+
+  function svgCheck(){
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  }
+
+  function render(){
+    const d = todayStr();
+    const groups = {};
+    tasks.forEach(t => { (groups[t.cat] = groups[t.cat] || []).push(t); });
+
+    const container = document.getElementById('taskGroups');
+    container.innerHTML = '';
+    if(tasks.length===0){
+      container.innerHTML = '<div class="card"><div class="empty">No tasks yet — add your first one above.</div></div>';
+    } else {
+      Object.keys(groups).sort().forEach(cat=>{
+        const h = document.createElement('div'); h.className='cat-heading'; h.textContent = cat;
+        container.appendChild(h);
+        groups[cat].forEach(t=>{
+          const done = isDone(t.id, d);
+          const streak = streakFor(t.id);
+          const el = document.createElement('div');
+          el.className = 'task' + (done ? ' done' : '');
+          el.innerHTML = `
+            <div class="check" role="checkbox" aria-checked="${done}" tabindex="0">${svgCheck()}</div>
+            <div class="task-main">
+              <div class="task-name">${escapeHtml(t.name)}</div>
+              <div class="meta-row">
+                <span class="pill pri-${t.pri}">${t.pri}</span>
+                ${streak>0 ? `<span class="streak">🔥 ${streak} day${streak===1?'':'s'}</span>` : ''}
+              </div>
+            </div>
+            <div class="task-actions">
+              <button class="icon-btn" data-act="edit" aria-label="Edit">✎</button>
+              <button class="icon-btn" data-act="del" aria-label="Delete">✕</button>
+            </div>`;
+          el.querySelector('.check').addEventListener('click', ()=>toggleDone(t.id));
+          el.querySelector('.check').addEventListener('keydown', ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); toggleDone(t.id);} });
+          el.querySelector('[data-act="edit"]').addEventListener('click', ()=>editTask(t.id));
+          el.querySelector('[data-act="del"]').addEventListener('click', ()=>{ if(confirm('Delete this task?')) deleteTask(t.id); });
+          container.appendChild(el);
+        });
+      });
+    }
+
+    const doneCount = tasks.filter(t=>isDone(t.id,d)).length;
+    document.getElementById('summaryCount').textContent = `${doneCount} / ${tasks.length} done today`;
+    document.getElementById('summarySub').textContent = tasks.length===0 ? 'Add a task below to get started.' :
+      (doneCount===tasks.length ? 'Everything is complete — nice work.' : `${tasks.length-doneCount} task${tasks.length-doneCount===1?'':'s'} left.`);
+    const pct = tasks.length ? doneCount/tasks.length : 0;
+    const ring = document.getElementById('ringFg');
+    const circumference = 169.6;
+    ring.style.strokeDashoffset = (circumference * (1-pct)).toFixed(1);
+
+    renderChart();
+  }
+
+  function renderChart(){
+    const bars = document.getElementById('chartBars');
+    bars.innerHTML = '';
+    const days = [];
+    for(let i=6;i>=0;i--){
+      const dd = new Date(); dd.setDate(dd.getDate()-i);
+      days.push(dd.toISOString().slice(0,10));
+    }
+    days.forEach(ds=>{
+      // percentage = tasks that existed and were completed that day, over all current tasks (simple approximation)
+      const total = tasks.length;
+      const done = total ? tasks.filter(t=>isDone(t.id,ds)).length : 0;
+      const pct = total ? Math.round((done/total)*100) : 0;
+      const col = document.createElement('div');
+      col.className='bar-col';
+      const label = new Date(ds+'T00:00:00').toLocaleDateString(undefined,{weekday:'narrow'});
+      col.innerHTML = `<span class="bar-pct">${pct}%</span>
+        <div class="bar-track"><div class="bar-fill" style="height:${pct}%"></div></div>
+        <span class="bar-label">${label}</span>`;
+      bars.appendChild(col);
+    });
+  }
+
+  function checkCelebrate(){
+    const d = todayStr();
+    if(tasks.length>0 && tasks.every(t=>isDone(t.id,d))){
+      document.getElementById('celebrate').classList.add('show');
+    }
+  }
+  document.getElementById('celebrateClose').addEventListener('click', ()=>{
+    document.getElementById('celebrate').classList.remove('show');
+  });
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // --- login ---
+  const LS_USER = 'dailyflow_user';
+  const loginScreen = document.getElementById('loginScreen');
+  const appRoot = document.getElementById('appRoot');
+  function showApp(){ loginScreen.style.display='none'; appRoot.style.display='block'; }
+  function showLogin(){ loginScreen.style.display='flex'; appRoot.style.display='none'; }
+  const existingUser = load(LS_USER, null);
+  if(existingUser) showApp(); else showLogin();
+
+  document.getElementById('loginForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPassword').value;
+    const errEl = document.getElementById('loginError');
+    if(!email || !pass){ errEl.textContent = 'Enter an email and password.'; return; }
+    errEl.textContent = '';
+    save(LS_USER, {email});
+    showApp();
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', ()=>{
+    localStorage.removeItem(LS_USER);
+    showLogin();
+  });
+
+  // seed example tasks on first run
+  if(tasks.length===0 && load('dailyflow_seeded', false)!==true){
+    tasks = [
+      {id:'seed1', name:'Morning walk', cat:'Health', pri:'Medium'},
+      {id:'seed2', name:'Review inbox', cat:'Work', pri:'High'},
+      {id:'seed3', name:'Read 10 pages', cat:'Personal', pri:'Low'}
+    ];
+    save(LS_TASKS, tasks);
+    save('dailyflow_seeded', true);
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
